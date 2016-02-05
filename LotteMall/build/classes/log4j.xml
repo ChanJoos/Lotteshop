@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration
+    xmlns:log4j="http://jakarta.apache.org/log4j/"
+    debug="false">
+
+    <appender name="console" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %5p [%c] %m%n" />
+        </layout>
+    </appender>
+
+	<appender name="rollingFile" class="org.apache.log4j.RollingFileAppender">
+		<param name="File" value="d:/web/server/logs/eis.log"/>
+		<param name="Append" value="true"/>
+		<param name="MaxFileSize" value="10MB"/>
+		<param name="MaxBackupIndex" value="10"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c]-%m%n" />
+		</layout>
+	</appender>
+	
+    <logger name="java.sql.PreparedStatement" additivity="false">
+    	<level value="DEBUG"/>
+    	<appender-ref ref="console"/>
+    </logger>
+	<logger name="org.springframework" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="console" />
+	</logger>
+    
+    <logger name="org.apache.poi" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="console" />
+	</logger>
+	
+	<logger name="java.sql">
+    	<level value="DEBUG"/>
+        <appender-ref ref="console"/>
+        <appender-ref ref="sql"/>
+    </logger>
+    
+    <!-- log SQL with timing information, post execution -->
+	<logger name="jdbc.sqltiming" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="console" /> 
+	</logger>
+<!-- 	
+	<logger name="com.mybatis" additivity="false">
+    	<level value="DEBUG"/>
+    	<appender-ref ref="console"/>	
+    </logger>
+ -->
+ 	<root> 
+ 	    <level value="debug" /> 
+ 	    <appender-ref ref="console" /> 
+ 	    <appender-ref ref="rollingFile"/> 
+ 	</root> 
+</log4j:configuration>

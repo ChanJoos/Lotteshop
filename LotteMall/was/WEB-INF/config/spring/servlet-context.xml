@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<annotation-driven />
+	<context:annotation-config/>
+	<context:component-scan base-package="com.fis.*.*.controller"></context:component-scan>
+
+	<beans:bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!--
+		<beans:property name="cache" value="false"/>
+		-->
+		<beans:property name="prefix" value="/WEB-INF/jsp/" />
+		<beans:property name="suffix" value=".jsp" />
+		<beans:property name="contentType" value="text/html; charset=UTF-8" />
+	</beans:bean>
+	<!-- 
+	<resources mapping="/resources/**" location="/resources/"></resources>
+	 -->
+	<!-- 폰 로그인 check -->
+	<!-- Url 이 /phone로 시작해서 확장자가 .mo로 시작하면 로그인 check를 한다. -->
+	<!-- 16.01.07 허용준 테스트를 위해 잠시 제거 
+	<interceptors>
+		<interceptor>
+			<mapping path="/phone/**/*.mo*" />
+			<beans:bean class="com.eis.sys.stat.use_info.interceptor.LoginPhoneCheckIntercepter" />
+		</interceptor>
+	</interceptors>
+	 -->
+</beans:beans>
+

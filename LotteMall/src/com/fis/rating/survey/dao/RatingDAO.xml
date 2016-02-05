@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fis.rating.survey.dao.RatingDAO">
+  <cache />
+    <!-- 
+  <![CDATA[ ]]> 
+   -->
+    
+<!--  오늘 메뉴 존재여부 조회 -->
+<select id="isTodayMenu"  parameterType="CarteVO" resultType="CarteVO" >
+SELECT DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6, MENU7, MENU8, MENU9
+	FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE = CONVERT(VARCHAR, GETDATE(), 112) 
+	AND MENU1 IS NOT NULL
+</select>
+
+<!--  오늘 메뉴 조회 -->
+<select id="getTodayMenu"  parameterType="CarteVO" resultType="BaseMap" >
+SELECT DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6, MENU7, MENU8, MENU9
+	FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE = CONVERT(VARCHAR, GETDATE(), 112) 
+	AND MENU1 IS NOT NULL
+</select>
+
+<!--  선택된 날짜, 타입의 메뉴 조회 -->
+<select id="getSelectedMenu"  parameterType="CarteVO" resultType="BaseMap" >
+SELECT DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6, MENU7, MENU8, MENU9
+	FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE = #{date} AND CARTE_TYPE=#{carte_type}
+	AND MENU1 IS NOT NULL
+</select>
+
+<!--  선택된 날짜, 타입의 메뉴 조회 -->
+<select id="getSelectedGradeAll"  parameterType="CarteVO" resultType="BaseMap" >
+SELECT A.DATE, A.CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6, MENU7, MENU8, MENU9, B.AVG
+	FROM [dbo].[FIS_CARTE_TB] AS A
+	LEFT OUTER JOIN (SELECT DATE, CARTE_TYPE, SUM(GRADE) 'AMOUNT', COUNT(GRADE) 'NUM', ROUND(CONVERT(FLOAT, SUM(GRADE))/COUNT(GRADE), 2) 'AVG' FROM [dbo].[FIS_EVALUATE_TB]
+	WHERE DATE = #{date} AND GRADE IS NOT NULL GROUP BY DATE, CARTE_TYPE) AS B
+	ON A.DATE = B.DATE AND A.CARTE_TYPE = B.CARTE_TYPE
+	WHERE A.DATE = #{date}
+	AND MENU1 IS NOT NULL
+</select>
+
+<!--  평가테이블 내 평점 제거 -->
+<delete id="deleteEvalList" parameterType="RatingVO" >
+DELETE [dbo].[FIS_EVALUATE_TB]
+	WHERE DATE = (CONVERT(VARCHAR, GETDATE(), 112)) AND CARTE_TYPE=#{carte_type} AND EMP_ID=#{emp_id}
+</delete>
+
+<!--  평가테이블 내 평점 추가 -->
+<insert id="insertEvalList" parameterType="RatingVO" >
+INSERT INTO [dbo].[FIS_EVALUATE_TB] (DATE, CARTE_TYPE, GRADE, EMP_ID,CREATOR, CREATE_DATE, UPDATE_DATE)
+	VALUES (CONVERT(VARCHAR, GETDATE(), 112), #{carte_type}, #{grade}, #{emp_id}, #{creator}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+</insert>
+
+<!--  오늘 User가 평가한 기록 조회 -->
+<select id="getUserHistory"  parameterType="RatingVO" resultType="BaseMap" >
+SELECT DATE, CARTE_TYPE, EMP_ID, GRADE, CREATOR
+	FROM [dbo].[FIS_EVALUATE_TB]
+	WHERE DATE = CONVERT(VARCHAR, GETDATE(), 112) AND EMP_ID = #{emp_id}
+</select> 
+
+<!--  오늘 메뉴 평점 조회 BY EVAL TABLE --> 
+<select id="getGrade"  parameterType="CarteVO" resultType="baseMap" >
+SELECT A.DATE, A.CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6, MENU7, MENU8, MENU9, B.AVG
+	FROM [dbo].[FIS_CARTE_TB] AS A
+	LEFT OUTER JOIN (SELECT DATE, CARTE_TYPE, SUM(GRADE) 'AMOUNT', COUNT(GRADE) 'NUM', ROUND(CONVERT(FLOAT, SUM(GRADE))/COUNT(GRADE), 2) 'AVG' FROM [dbo].[FIS_EVALUATE_TB]
+	WHERE DATE = CONVERT(VARCHAR, GETDATE(), 112) AND GRADE IS NOT NULL GROUP BY DATE, CARTE_TYPE) AS B
+	ON A.DATE = B.DATE AND A.CARTE_TYPE = B.CARTE_TYPE
+	WHERE A.DATE = CONVERT(VARCHAR, GETDATE(), 112)
+	AND MENU1 IS NOT NULL
+</select> 
+
+<!--  이달 베스트 메뉴 BY EVAL TABLE-->
+<select id="bestGrade"  parameterType="CarteVO" resultType="baseMap" >
+SELECT TOP 1 A.DATE, A.CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6, MENU7, MENU8, MENU9, B.AVG
+	FROM [dbo].[FIS_CARTE_TB] AS A
+	RIGHT OUTER JOIN (SELECT DATE, CARTE_TYPE, SUM(GRADE) 'AMOUNT', COUNT(GRADE) 'NUM', ROUND(CONVERT(FLOAT, SUM(GRADE))/COUNT(GRADE), 2) 'AVG' FROM [dbo].[FIS_EVALUATE_TB]
+	WHERE ( DATE BETWEEN ROUND(CONVERT(VARCHAR, GETDATE(), 112), -2) AND CONVERT(VARCHAR, GETDATE(), 112) ) AND GRADE IS NOT NULL GROUP BY DATE, CARTE_TYPE) AS B
+	ON A.DATE = B.DATE AND A.CARTE_TYPE = B.CARTE_TYPE
+	WHERE ( A.DATE BETWEEN ROUND(CONVERT(VARCHAR, GETDATE(), 112), -2) AND CONVERT(VARCHAR, GETDATE(), 112) )
+	AND MENU1 IS NOT NULL
+	ORDER BY AVG DESC
+</select>
+	
+<!--  이 주 평점 불러오기  by OUTER JOIN-->
+<select id="weekGrade"  parameterType="CarteVO" resultType="baseMap" > 
+SELECT A.DATE, A.CARTE_TYPE, A.MENU1, B.AMOUNT, B.NUM, B.AVG
+	FROM [dbo].[FIS_CARTE_TB] AS A
+	LEFT OUTER JOIN (SELECT DATE, CARTE_TYPE, SUM(GRADE) 'AMOUNT', COUNT(GRADE) 'NUM', ROUND(CONVERT(FLOAT, SUM(GRADE))/COUNT(GRADE), 2) 'AVG' FROM [dbo].[FIS_EVALUATE_TB]
+	WHERE ( DATE BETWEEN #{date} AND #{end_date} ) AND GRADE IS NOT NULL GROUP BY DATE, CARTE_TYPE) AS B
+	ON A.DATE = B.DATE AND A.CARTE_TYPE = B.CARTE_TYPE
+	WHERE ( A.DATE BETWEEN #{date} AND #{end_date} )  AND MENU1 IS NOT NULL
+	ORDER BY DATE ASC
+</select> 
+	
+<!--  오늘 User가 평가한 종류별 기록 조회 -->
+<select id="getUserHistory_type"  parameterType="RatingVO" resultType="BaseMap" >
+SELECT DATE, CARTE_TYPE, EMP_ID, GRADE, CREATOR
+	FROM [dbo].[FIS_EVALUATE_TB]
+	WHERE DATE = CONVERT(VARCHAR, GETDATE(), 112) AND EMP_ID = #{emp_id} AND CARTE_TYPE = #{carte_type}
+</select> 
+
+</mapper>
+
+<!--  이 주 평점 불러오기  by MENU table
+<select id="weekGrade"  parameterType="CarteVO" resultType="baseMap" >
+SELECT DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6, MENU7, MENU8, MENU9,
+	GRADE, NUM_OF_GRADE, ROUND(CONVERT(FLOAT, GRADE)/NUM_OF_GRADE, 2) 'AVG'
+	FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE >= #{date} AND NUM_OF_GRADE > 0
+	AND GRADE IS NOT NULL AND NUM_OF_GRADE IS NOT NULL AND MENU1 IS NOT NULL
+	ORDER BY DATE ASC
+</select>  
+-->
+
+<!--  오늘 메뉴 평점 조회   by MENU table
+<select id="getGrade"  parameterType="CarteVO" resultType="baseMap" >
+SELECT DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6, MENU7, MENU8, MENU9,
+	ISNULL(GRADE, 0) GRADE, ISNULL(NUM_OF_GRADE,0) NUM_OF_GRADE, ISNULL( ROUND(CONVERT(FLOAT, GRADE)/NUM_OF_GRADE, 2), 0) 'AVG'
+	FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE = CONVERT(VARCHAR, GETDATE(), 112) AND NUM_OF_GRADE >= 0
+	AND MENU1 IS NOT NULL
+</select> 
+--> 
+
+<!--  이달 베스트 메뉴 BY MENU TABLE
+<select id="bestGrade"  parameterType="CarteVO" resultType="baseMap" >
+SELECT TOP 1 DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6, MENU7, MENU8, MENU9,
+	GRADE, NUM_OF_GRADE, ROUND(CONVERT(FLOAT, GRADE)/NUM_OF_GRADE, 2) 'AVG'
+	FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE > ROUND(CONVERT(VARCHAR, GETDATE(), 112), -2) AND NUM_OF_GRADE > 0
+	
+	AND GRADE IS NOT NULL AND NUM_OF_GRADE IS NOT NULL AND MENU1 IS NOT NULL
+	ORDER BY AVG DESC
+</select> 
+ -->
+ 
+ <!--  메뉴테이블 내 평점 수정
+<update id="updateEvalList" parameterType="RatingVO" >
+UPDATE [dbo].[FIS_CARTE_TB] 
+	SET GRADE = ISNULL(GRADE, 0) +  ((SELECT GRADE FROM [dbo].[FIS_CARTE_TB] WHERE DATE=CONVERT(VARCHAR, GETDATE(), 112) AND CARTE_TYPE= #{carte_type} AND GRADE IS NOT NULL )+#{grade}),
+	NUM_OF_GRADE=((SELECT NUM_OF_GRADE FROM [dbo].[FIS_CARTE_TB] WHERE DATE=CONVERT(VARCHAR, GETDATE(), 112) AND CARTE_TYPE= #{carte_type} AND GRADE IS NOT NULL)+1),
+	UPDATE_DATE=CURRENT_TIMESTAMP
+	WHERE DATE=CONVERT(VARCHAR, GETDATE(), 112) AND CARTE_TYPE= #{carte_type}
+</update>
+ -->
+ 
+ <!--  메뉴테이블 내 총점수 수정 
+<update id="updateGradeOfCarte" parameterType="RatingVO" >
+UPDATE [dbo].[FIS_CARTE_TB] 
+	SET GRADE = GRADE - #{grade} ,
+	UPDATE_DATE=CURRENT_TIMESTAMP
+	WHERE DATE = CONVERT(VARCHAR, GETDATE(), 112) AND CARTE_TYPE= #{carte_type} AND GRADE IS NOT NULL
+</update>
+-->
+
+<!--  이 주 평점 불러오기  by Eval table
+<select id="weekGrade"  parameterType="CarteVO" resultType="baseMap" > 
+SELECT DATE, CARTE_TYPE, 
+	SUM(GRADE) 'AMOUNT', COUNT(GRADE) 'NUM', ROUND(CONVERT(FLOAT, SUM(GRADE))/COUNT(GRADE), 2) 'AVG'
+	FROM [dbo].[FIS_EVALUATE_TB]
+	WHERE DATE >= #{date} 
+	AND GRADE IS NOT NULL 
+	GROUP BY DATE, CARTE_TYPE
+	ORDER BY DATE ASC
+</select> 
+-->

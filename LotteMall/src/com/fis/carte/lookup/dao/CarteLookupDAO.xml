@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fis.carte.lookup.dao.CarteLookupDAO">
+  <cache />
+    <!-- 
+  	<![CDATA[ ]]> 
+   -->
+   
+<!-- 
+<select id="selectList"  parameterType="carteVO" resultType="baseMap" >
+
+</select>
+ -->
+ 
+ <!-- 
+<select id="selectList" resultType="carteVO">
+	SELECT 
+	DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6
+	, MENU7, MENU8, MENU9
+	FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE = #{DATE} AND CARTE_TYPE = #{CARTE_TYPE}
+</select>
+ -->
+ 
+ <!-- 
+ <select id="selectList" resultType="com.vo.CarteVO">
+	SELECT 
+	DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6
+	, MENU7, MENU8, MENU9
+	FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE >= #{startDate} AND #{endDate} >= DATE
+	
+</select>
+ -->
+
+ <select id="selectCarteList" resultType="baseMap">
+	SELECT 
+	DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6
+	, MENU7, MENU8, MENU9
+	FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE >= #{startDate} AND #{endDate} >= DATE
+</select>
+
+ <select id="selectReserveList" resultType="String">
+	SELECT RESERVE_YN 
+	FROM [dbo].[FIS_RESERVE_TB] 
+	WHERE DATE = #{date} AND CARTE_TYPE = #{carte_type} AND EMP_ID = #{emp_id}
+</select>
+
+ <select id="selectReserveCount" resultType="Integer">
+	SELECT COUNT(*) 
+	FROM [dbo].[FIS_RESERVE_TB] 
+	WHERE DATE=#{count_date} AND CARTE_TYPE = #{count_carte_type} AND RESERVE_YN = 'Y'
+</select>
+
+<!-- 
+ <select id="selectReserveList" resultType="baseMap">
+	SELECT DATE, CARTE_TYPE, EMP_ID 
+	FROM [dbo].[FIS_RESERVE_TB] 
+	WHERE DATE >= #{startDate} AND #{endDate} >= DATE 
+				AND CARTE_TYPE = #{carte_type} AND EMP_ID = #{emp_id}
+</select>
+ -->
+
+<delete id="deleteCarteRows" parameterType="String">
+	DELETE FROM [dbo].[FIS_CARTE_TB]
+	WHERE DATE >= #{startRow} AND #{endRow} >= DATE
+</delete>
+	
+<insert id="insertReservation" parameterType="carteReserveInfoVO">
+	IF EXISTS (SELECT DATE, CARTE_TYPE, EMP_ID FROM [dbo].[FIS_RESERVE_TB] 
+		WHERE DATE=#{date} and CARTE_TYPE=#{carte_type} and EMP_ID=#{emp_id})
+		UPDATE [dbo].[FIS_RESERVE_TB] 
+		SET RESERVE_YN=#{reserve_yn}, UPDATE_DATE=CURRENT_TIMESTAMP
+		WHERE DATE=#{date} and CARTE_TYPE=#{carte_type} and EMP_ID=#{emp_id}
+	ELSE
+	    INSERT INTO [dbo].[FIS_RESERVE_TB] (DATE, CARTE_TYPE, EMP_ID, RESERVE_YN, DEPT_CODE, DEPT_NAME, CREATE_DATE, UPDATE_DATE) 
+		VALUES (#{date}, #{carte_type}, #{emp_id}, #{reserve_yn}, 'CODE', 'NAME', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+</insert>
+
+ 
+ <!-- 
+ <insert id="insertReservation" parameterType="carteReserveInfoVO">
+	IF EXISTS (SELECT DATE, CARTE_TYPE, EMP_ID FROM [dbo].[FIS_RESERVE_TB] WHERE DATE='20160125' and CARTE_TYPE='DN' and EMP_ID='TEST')
+		UPDATE [dbo].[FIS_RESERVE_TB] 
+		SET RESERVE_YN='N', UPDATE_DATE =CURRENT_TIMESTAMP
+		WHERE DATE='20160125' and CARTE_TYPE='DN' and EMP_ID='TEST'
+	ELSE
+	    INSERT INTO [dbo].[FIS_RESERVE_TB] (DATE, CARTE_TYPE, EMP_ID, RESERVE_YN, DEPT_CODE, DEPT_NAME, CREATE_DATE, UPDATE_DATE) 
+		VALUES ('20160125', 'DN', 'TEST', 'Y', 'test', 'test', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+</insert>
+ -->
+ 
+ <!-- 동적 SQL 활용 부분 -->
+<!-- 
+<insert id="insertList" parameterType="carteVO">
+
+	<choose>
+		<when test='menu1 == null'>
+			INSERT INTO [dbo].[FIS_CARTE_TB] 
+			(DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6
+			, MENU7, MENU8, MENU9, CREATOR, CREATE_DATE, UPDATE_DATE)
+			VALUES 
+			(#{date}, #{carte_type}, #{menu1}, #{menu2}, #{menu3}, #{menu4}, #{menu5}, #{menu6}
+			, #{menu7}, #{menu8}, #{menu9}, #{creator}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+		</when>
+		<when test='menu1 != null'>
+			UPDATE [dbo].[FIS_CARTE_TB]
+			SET 
+			DATE =#{date}, CARTE_TYPE = #{carte_type}, MENU1 = #{menu1}, MENU2 = #{menu2}
+			, MENU3 = #{menu3}, MENU4 = #{menu4}, MENU5 = #{menu5}, MENU6 = #{menu6}
+			, MENU7 = #{menu7}, MENU8 = #{menu8}, MENU9 = #{menu9}, UPDATE_DATE = CURRENT_TIMESTAMP
+		</when>
+	</choose>
+	
+</insert>
+ -->
+ 
+ <!-- CONVERT(VARCHAR, GETDATE(), 112) 오늘 날짜 -->
+ 
+ <!-- test -->
+ <!-- 
+ <insert id="insertList">
+	INSERT INTO [dbo].[FIS_CARTE_TB] (DATE, CARTE_TYPE, MENU1, MENU2, MENU3, MENU4, MENU5, MENU6
+	, MENU7, MENU8, MENU9, CREATOR, CREATE_DATE, UPDATE_DATE)
+	VALUES (GETDATE(), 'DN', 'test', 'test', 'test', 'test', 'test', 'test'
+	, 'test', 'test', 'test', '2120091', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+</insert>
+-->
+
+</mapper>
