@@ -43,45 +43,6 @@
   <script src="style/js/jquery.fittext.js"></script>
   <script src="style/js/wow.min.js"></script>
 
-	
-	<!--IS USER LOGINED NOW? CHECK IT -->
-	<?php
-	/*
-    <link rel="stylesheet" href="style/css/bootstrap.css" media="screen" type="text/css">
-    <script src="index.js" type="text/javascript"></script>
-	session_cache_expire(120);
-	session_start();
-	$_SESSION["S_ID"] = session_id();
-	$sid = $_SESSION["S_ID"];
-			$rows = $db->query("SELECT * from account WHERE sid = '$sid'");
-*/
-	try {
-
-		$db = new PDO("mysql:dbname=LotteMall","root","1111");
-		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		//CHECK USER IS LOGINED. IF SOMEONE HAS ALREADY LOGINED, DATA IS ON SESSION DB TABLE
-		$rows = $db->query("SELECT * from account");
-		$count = $rows->rowCount();
-		//LOGINED USER. REDIRECT TO MAIN
-		if($count > 0)
-		{
-//			echo "<script> alert('hello!'); </script>";	
-//			header("Location: example.php");
-//			exit;
-		}
-		
-		// IF USER REQUESTED LOGIN, AND ID PASSWOD IS WRONG, ALERT SOMETHING.
-		if(isset($_SESSION['login']) && $_SESSION['login'] == FALSE)
-		{
-			echo "<script> alert('you got wrong password!'); </script>";	
-		}
-		
-	} catch (PDOException $ex) {
-		header("HTTP/1.1 400 wrong request");
-		Die("Sorry, Server status is not good. Error : $ex->getMessage()");
-	}
-	
-	?>
 </head>
 <body>
 	<div class="navbar navbar-default navbar-fixed-top">
@@ -101,7 +62,7 @@
         <div class="navbar-collapse collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav navbar-left">
             <li>
-              <a href="myPage.php">마이정보</a>
+              <a href="myPage.html">마이정보</a>
             </li>
             <li>
               <a href="#">프로모션/쿠폰</a>
